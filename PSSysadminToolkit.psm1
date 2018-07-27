@@ -4,5 +4,5 @@ $Public | ForEach-Object {
     . $_.FullName
 }
 
-Export-ModuleMember -Function *
+Export-ModuleMember -Function $Public.BaseName
 
