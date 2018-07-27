@@ -2,21 +2,17 @@ Function Get-ADUserProperties {
 
     [cmdletBinding()]
     param (
-    [Parameter(mandatory = $True, ValueFromPipeline = $true)]
+    [Parameter(mandatory,Position=0)]
     [ValidateNotNullOrEmpty()]
     [string]$Username,
-    [Parameter(Mandatory,Position=0,ParameterSetName='Logging')]
-    [switch]$Log,
-    [Parameter(Mandatory=$false,Position=1,ParameterSetName='Logging')]
+    [Parameter(Mandatory=$false,Position=1)]
     [ValidateNotNullOrEmpty()]
-    [String]$LogFileName
+    [String]$LogFilePath
     )
 
-    #Log file location ex:
-    #$Logfilename = 'c:\reports\temp' + $Username + ($TimeStamp = Get-Date -Format '_yyyy_MM_dd_HH-mm-ss') + '.txt'
     Begin{}
 
-    Processing {
+    Process {
 
         Try {
 
@@ -32,35 +28,38 @@ Function Get-ADUserProperties {
         }
 
 
-        $managerDetails = Get-ADUser $user.manager -Properties displayName 
+        #$managerDetails = Get-ADUser $user.manager -Properties displayName 
         #$managerDetails = Get-ADUser (Get-ADUser $Username -properties manager).manager -properties displayName
-        $uprop2 = Get-ADPrincipalGroupMembership -Identity $User | Get-ADGroup -Properties * | select name, description
+        $UserGroups = Get-ADPrincipalGroupMembership -Identity $User | Get-ADGroup -Properties * -ErrorAction SilentlyContinue| select name, description
 
         $UserProperties = [pscustomobject][ordered]@{
-                    "Name" = $uprop1.name
-                    "User ID" = $uprop1.samaccountname
-                    "Email Address" = $uprop1.emailaddress
-                    "Title" = $uprop1.title
-                    "Description" = $uprop1.Description
-                    "Department" = $uprop1.Department
-                    "Manager" = $managerDetails.Name
-                    "Office Phone" = $uprop1.officephone
-                    "Mobile" = $uprop1.mobile
-                    "Account Created" = $uprop1.Created
-                    "Password Last Changed" = $uprop1.PasswordLastSet
-                    "AD Group Information" = $uprop2
+                    "Name" = $user.name
+                    "User ID" = $User.samaccountname
+                    "Email Address" = $User.emailaddress
+                    "Title" = $User.title
+                    "Description" = $User.Description
+                    "Department" = $User.Department
+                    #"Manager" = $managerDetails.Name
+                    "Office Phone" = $User.officephone
+                    "Mobile" = $User.mobile
+                    "Account Created" = $User.Created
+                    "Password Last Changed" = $User.PasswordLastSet
+                    "AD Group Information" = $UserGroups
                     # End of $prop1
                 }
 
-        Switch($PSCmdlet.ParameterSetName){
-            'Logging' {
 
-                 $File = $LogFileName + $User + ((Get-Date).ToLongDateString()) + '.txt'
+        If($LogFilePath){
+            $time = (Get-Date -Format yyyy-mm-dd-hh-mm-ss)
+            $File = "$LogFilePath\$($User.SamAccountName)_$($time).txt"
 
-                $UserProperties | Out-File $File
+            $UserProperties | Out-File $File
 
-            }
+        }
 
+        Else {
+
+            Write-Output $UserProperties
         }
 
     }
@@ -71,10 +70,5 @@ Function Get-ADUserProperties {
         Write-Information "Processing has completed"
 
     }
-            <#$4userinfo += $prop1 | FT -AutoSize | Out-String
-            $4userinfo += $uprop2 | FT -AutoSize | Out-String
-            $4userinfo |  Out-File -FilePath $Logfilename
-            Write-host "Completed"
-            #>
 
 }
