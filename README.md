@@ -10,3 +10,4 @@ _This project is currently in active development. Usage of scripts is at your ow
 - Get-UserProperties
 - New-LMGTFYLink
 - New-RegistryKey
+- Test-RemoteManagement
