@@ -1,4 +1,4 @@
-Function Test-RemoteManagement {
+function Test-RemoteManagement {
     <#
     .SYNOPSIS
     Test various aspects of remote computer connectivity
@@ -30,77 +30,59 @@ Function Test-RemoteManagement {
     #>
     [cmdletBinding()]
     Param(
-        [Parameter(Mandatory,Position=0,ValueFromPipeline=$true)]
-        [Alias(name,computer)]
-        [string[]]$Computername,
-        [Parameter(Mandatory=$false,Position=1)]
-        [Switch]$Ping,
-        [Parameter(Mandatory=$false,Position=2)]
-        [Switch]$WSMan,
-        [Parameter(Mandatory=$false,Position=3)]
-        [Switch]$WMI
+        [Parameter(Mandatory,Position=0,ValueFromPipeline)]
+        [Alias('Name','Target')]
+        [string[]]
+        $Computername,
+        
+        [Parameter(Position=1)]
+        [Switch]
+        $Ping,
+        
+        # Neither Position nor Mandatory really do anything useful with switches
+        [Parameter()] 
+        [Switch]
+        $WSMan,
+        
+        [Parameter()]
+        [Switch]
+        $WMI
     )
-
-    $TestResults = New-Object 'System.Collections.Generic.List[pscustomobject]'
-
-    Foreach($c in $Computername){
-
-        $obj = [pscustomobject]@{
-
-            'Computername' = $c
-        }
-
-        If($Ping){
-
-            $pingParams = @{
-            'Computername' = $c
-            'Count' = 3
-            'Quiet' = $true
+    # Process needed for pipeline
+    process {
+        foreach ($Computer in $ComputerName){
+        # We can build as hashtable completely first, avoiding slow Add-Member calls
+            $Object = @{
+                'Computername' = $Computer
             }
-
-            $PingNoteParams = @{
-            'InputObject' = $obj
-            'MemberType' = 'NoteProperty'
-            'Name' = 'Ping Passed'
-            'Value' = (Test-Connection @pingParams)
+            
+            # This is weird, but better than a stack of ifs!
+            switch ($true) {
+                {$Ping} {
+                    $PingParams = @{
+                        'Computername' = $Computer
+                        'Count' = 3
+                        'Quiet' = $true
+                    }
+                    # Best to avoid properties with spaces in the name, they can be annoying
+                    $Object.Add('PingResponse',(Test-Connection @PingParams))
+                }
+                {$WMI} {
+                    $WmiParams = @{
+                        'ComputerName' = $Computer
+                        'ClassName' = 'Win32_Bios'
+                    }
+                    $Object.Add('WmiAvailable',[bool](Get-WmiObject @WmiParams))
+                }
+                {$WSMan} {
+                    $Object.Add('WSManAvailable', [bool](Test-WSMan -ComputerName $Computer))
+                }
             }
-
-            Add-Member @PingNoteParams
-
+            # Adding to a list is bad if youre just outputting it to pipeline!
+            # The quicker the next cmdlet in line gets the next object, the quicker the pipeline can be!
+            [PSCustomObject] $Object
         }
-
-        If($WMI){
-
-            $WMINoteParams = @{
-                'InputObject' = $obj
-                'MemberType' = 'NoteProperty'
-                'Name' = 'WMI Passed'
-                'Value' = [bool](Get-WmiObject win32_bios -ComputerName $c)
-
-            }
-
-            Add-Member @WMINoteParams
-
-        }
-
-        If($WSMan){
-
-            $WSManNoteParams = @{
-                'InputObject' = $obj
-                'MemberType' = 'NoteProperty'
-                'Name' = 'WSMan Passed'
-                'Value' = [bool](Test-WSMan -ComputerName $c)
-
-            }
-
-            Add-Member @WSManNoteParams
-        }
-
-        $TestResults.Add($obj)
     }
-
-    return $TestResults
-
 }
 
 
