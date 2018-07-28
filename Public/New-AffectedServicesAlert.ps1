@@ -1,4 +1,4 @@
-Function New-AffectedServicesAlert {
+function New-AffectedServicesAlert {
     <#
     .SYNOPSIS
     Generate an email alert when a service outage is planned
@@ -33,6 +33,9 @@ Function New-AffectedServicesAlert {
         [string[]]$Stakeholders
     )
 
+    Begin {}
+
+    Process {
     $content = @"
     <!DOCTYPE html>
     <html>
@@ -84,4 +87,8 @@ Function New-AffectedServicesAlert {
     }
 
     Send-MailMessage @mailParams
+
+    }
+
+    End {}
 }
