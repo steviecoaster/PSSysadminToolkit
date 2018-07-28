@@ -34,16 +34,16 @@ function Test-RemoteManagement {
         [Alias('Name','Target')]
         [string[]]
         $Computername,
-        
+
         [Parameter(Position=1)]
         [Switch]
         $Ping,
-        
+
         # Neither Position nor Mandatory really do anything useful with switches
         [Parameter()] 
         [Switch]
         $WSMan,
-        
+
         [Parameter()]
         [Switch]
         $WMI
@@ -55,7 +55,7 @@ function Test-RemoteManagement {
             $Object = @{
                 'Computername' = $Computer
             }
-            
+
             # This is weird, but better than a stack of ifs!
             switch ($true) {
                 {$Ping} {
