@@ -24,13 +24,20 @@ function New-AffectedServicesAlert {
     [cmdletBinding()]
     Param(
         [Parameter(Mandatory,Position=0)]
-        [string]$AffectedService,
+        [string]
+        $AffectedService,
+
         [Parameter(Mandatory,Position=1)]
-        [string]$Reason,
+        [string]
+        $Reason,
+
         [Parameter(Mandatory,Position=2)]
-        [string]$OutageLength,
+        [string]
+        $OutageLength,
+
         [Parameter(Mandatory,Position=3)]
-        [string[]]$Stakeholders
+        [string[]]
+        $Stakeholders
     )
 
     Begin {}
