@@ -74,9 +74,9 @@ Function New-AffectedServicesAlert {
 "@
 
     $mailParams = @{
-        'SmtpServer' = 'smtp.kent.edu'
+        'SmtpServer' = 'smtp.server.fqdn' #edit this value
         'Subject' = "Affected Services Alert"
-        'From' = "servicealert@kent.edu" #edit this value
+        'From' = "servicealert@company.com" #edit this value
         'To' = $Stakeholders
         'Body' = $content
         'BodyAsHtml' = $true
