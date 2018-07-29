@@ -11,44 +11,62 @@ Function Get-SystemUptime {
         [String[]]$Computername
     )
 
-    $UptimeObjects = New-Object System.Collections.Generic.List
-    Foreach($c in $Computername){
-        Try {
+    Begin{}
 
-            Test-Connection -ComputerName $c -Quiet -Count 2 -ErrorAction Stop
+    Process{
+        $Collection = New-Object System.Collections.ArrayList
+
+        Foreach($c in $Computername){
+            $obj = @{
+                'Workstation' = $c
+            }
+
+            @('Ping','WMI') |
+            ForEach-Object {
+
+                Switch($_) {
+
+                    'Ping' {
+                        If(!(Test-Connection -ComputerName $c -Count 1 -Quiet))
+                        { 
+                            $obj.Add('Ping Result',"$c Appears Offline")
+                        
+                        }
+                        
+                        Else
+                        {
+                            $obj.Add('Ping Result','OK')
+                        }
+                        
+                    }
+                        
+                    'WMI' {
+
+                        If([bool](Get-WmiObject win32_operatingsystem -ComputerName $c) -eq $false)
+                        {
+                            $obj.Add('Remote WMI',"$c not accessible via WMI")
+                        }
+                        Else
+                        {
+                            $obj.Add('Remote WMI',"OK")
+                        }
+                    }
+
+                }
+            }
+
+                $time = Get-WmiObject win32_operatingsystem -ComputerName $C
+                $Uptime = $lastBoot = $time.ConvertToDateTime($time.LocalDateTime) - $time.ConvertToDateTime($time.LastBootUpTime)
+                $obj.Add('Last Boot Time',$Time.ConvertToDateTime($Time.LastBootUpTime))
+                $obj.Add('System Uptime',"$($Uptime.Days) Days $($Uptime.Hours) Hours $($Uptime.Minutes) Minutes $($Uptime.Seconds) Seconds")
+
+                $Collection.Add($obj)
+
         }
 
-        Catch {
-
-            $uptimeResult = "Ping failed, assuming computer offline!"
-        }
-
-        Try {
-
-            Test-WSMan -ComputerName $c -ErrorAction Stop
-        }
-
-        Catch {
-
-            $uptimeResult = "Computer online, CIM read failure. Check WSMan."
-        }
-
-        Try {
-            $time = Get-WmiObject Win32_OperatingSystem -ComputerName $c -ErrorAction Stop
-            $lastBoot = $time.ConvertToDateTime($time.LocalDateTime) - $time.ConvertToDateTime($time.LastBootUpTime)
-
-        }
-
-        Catch {
-
-            $lastBoot = "Computer is online, but not responding to WMI"
-        }
-
-        $obj = [pscustomobject]@{
-
-            'Server' = $c
-            'System Uptime' = "$($lastBoot.Days) Days:$($lastBoot.Hours) Hours: $($lastBoot.Minutes) Minutes: $($lastBoot.Seconds) Seconds"
-        }
-
+        $Collection | ForEach-Object { return $_ }
     }
+
+    End{}
+
 }
