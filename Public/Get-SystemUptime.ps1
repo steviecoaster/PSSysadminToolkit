@@ -64,9 +64,9 @@ Function Get-SystemUptime {
                 }
             }
 
-                $time = Get-WmiObject win32_operatingsystem -ComputerName $C
-                $Uptime = $lastBoot = $time.ConvertToDateTime($time.LocalDateTime) - $time.ConvertToDateTime($time.LastBootUpTime)
-                $obj.Add('Last Boot Time',$Time.ConvertToDateTime($Time.LastBootUpTime))
+                $time = Get-CimInstance win32_operatingsystem -ComputerName $C
+                $Uptime = $time.LocalDateTime - $time.LastBootUpTime
+                $obj.Add('Last Boot Time',$Time.LastBootUpTime)
                 $obj.Add('System Uptime',"$($Uptime.Days) Days $($Uptime.Hours) Hours $($Uptime.Minutes) Minutes $($Uptime.Seconds) Seconds")
 
                 [void]$Collection.Add($obj)
