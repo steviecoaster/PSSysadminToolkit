@@ -14,3 +14,5 @@ To test this module, work is being done in the Dev branch, so be sure to downloa
 - New-RegistryKey
 - Test-RemoteManagement
 - New-AffectedServicesAlert
+- Remove-UserProfile
+- Get-ComputerFromOU
