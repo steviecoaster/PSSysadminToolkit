@@ -3,6 +3,15 @@ Function Get-SystemUptime {
         .SYNOPSIS
         Retrieve the uptime of a system
 
+        .DESCRIPTION
+        Function which accepts an array of computer names, and returns system uptime as objects.
+
+        .PARAMETER Computername
+        Accepts an array of computer names and returns uptime and boot information
+
+        .EXAMPLE
+        Get-SystemUptime -Computername RECEPTION-PC
+
     #>
 
     [cmdletbinding()]
@@ -60,7 +69,7 @@ Function Get-SystemUptime {
                 $obj.Add('Last Boot Time',$Time.ConvertToDateTime($Time.LastBootUpTime))
                 $obj.Add('System Uptime',"$($Uptime.Days) Days $($Uptime.Hours) Hours $($Uptime.Minutes) Minutes $($Uptime.Seconds) Seconds")
 
-                $Collection.Add($obj)
+                [void]$Collection.Add($obj)
 
         }
 
