@@ -13,111 +13,118 @@ function Get-PendingRebootStatus {
         $Computername = $env:COMPUTERNAME
     )
 
-    $PendingUpdates = @{'ComputerName' = $Computername}
-    Switch ($Location) {
-        'WindowsUpdate' {
+    Begin {}
 
-            If (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
+    Process {
+        $PendingUpdates = @{'ComputerName' = $Computername}
+        Switch ($Location) {
+            'WindowsUpdate' {
 
-                $PendingUpdates.Add('WindowsUpatePending', $true)
+                If (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
+
+                    $PendingUpdates.Add('WindowsUpatePending', $true)
+                }
+
+                Else {
+                    $PendingUpdates.Add('WindowsUpdatePending', $false)
+                }
+
             }
 
-            Else {
-                $PendingUpdates.Add('WindowsUpdatePending', $false)
+            'CBS' {
+
+                If (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
+                    $PendingUpdates.Add('CBSPending', $true)
+
+                }
+
+                Else {
+
+                    $PendingUpdates.Add('CBSPending', $false)
+
+                }
             }
 
+            'Session Manager' {
+                If (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations) {
+
+                    $PendingUpdates.Add('SessionManager', $true)
+
+                }
+
+                Else {
+
+                    $PendingUpdates.Add('SessionManager', $false)
+
+                }
+            }
+            'SCCM' {
+
+                If (([wmiclass]"\\.\root\ccm\client\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq 'True') {
+
+                    $PendingUpdates.Add('SCCM', $true)
+                }
+
+                Else {
+
+                    $PendingUpdates.Add('SCCM', $false)
+
+                }
+            }
+            'All' {
+                #Windows Update
+                If (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
+
+                    $PendingUpdates.Add('WindowsUpatePending', $true)
+                }
+
+                Else {
+                    $PendingUpdates.Add('WindowsUpdatePending', $false)
+                }
+
+                #CBS
+                If (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
+                    $PendingUpdates.Add('CBSPending', $true)
+
+                }
+
+                Else {
+
+                    $PendingUpdates.Add('CBSPending', $false)
+
+                }
+
+                #Session Manager
+                If (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations) {
+
+                    $PendingUpdates.Add('SessionManager', $true)
+
+                }
+
+                Else {
+
+                    $PendingUpdates.Add('SessionManager', $false)
+
+                }
+
+                #SCCM
+                If (([wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq 'True') {
+
+                    $PendingUpdates.Add('SCCM', $true)
+                }
+
+                Else {
+
+                    $PendingUpdates.Add('SCCM', $false)
+
+                }
+
+            }
         }
 
-        'CBS' {
-
-            If (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
-                $PendingUpdates.Add('CBSPending', $true)
-
-            }
-
-            Else {
-
-                $PendingUpdates.Add('CBSPending', $false)
-
-            }
-        }
-
-        'Session Manager' {
-            If (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations) {
-
-                $PendingUpdates.Add('SessionManager', $true)
-
-            }
-
-            Else {
-
-                $PendingUpdates.Add('SessionManager', $false)
-
-            }
-        }
-        'SCCM' {
-
-            If (([wmiclass]"\\.\root\ccm\client\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq 'True') {
-
-                $PendingUpdates.Add('SCCM', $true)
-            }
-
-            Else {
-
-                $PendingUpdates.Add('SCCM', $false)
-
-            }
-        }
-        'All' {
-            #Windows Update
-            If (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
-
-                $PendingUpdates.Add('WindowsUpatePending', $true)
-            }
-
-            Else {
-                $PendingUpdates.Add('WindowsUpdatePending', $false)
-            }
-
-            #CBS
-            If (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
-                $PendingUpdates.Add('CBSPending', $true)
-
-            }
-
-            Else {
-
-                $PendingUpdates.Add('CBSPending', $false)
-
-            }
-
-            #Session Manager
-            If (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations) {
-
-                $PendingUpdates.Add('SessionManager', $true)
-
-            }
-
-            Else {
-
-                $PendingUpdates.Add('SessionManager', $false)
-
-            }
-
-            #SCCM
-            If (([wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq 'True') {
-
-                $PendingUpdates.Add('SCCM', $true)
-            }
-
-            Else {
-
-                $PendingUpdates.Add('SCCM', $false)
-
-            }
-
-        }
+        [pscustomobject]$PendingUpdates
     }
 
-    [pscustomobject]$PendingUpdates
+    End {}
+
 }
