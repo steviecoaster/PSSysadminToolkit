@@ -2,15 +2,14 @@
 
 #Region register every OU in the domain for autocompletion in the OU parameter
 Register-ArgumentCompleter -CommandName Get-ComputerFromOU -ParameterName OU -ScriptBlock {
-    (Get-ADOrganizationalUnit -Filter *).DistinguishedName |
-    ForEach-Object {
+    (Get-ADOrganizationalUnit -Filter *).DistinguishedName | ForEach-Object {
         $Text = $_
         If($Text -match '\s') {$Text = "'$Text'"}
 
-        New-Object System.Management.Automation.CompletionResult (
-            $Text,
-            $_,
-            'ParameterValue',
+        New-Object System.Management.Automation.CompletionResult @(
+            $Text
+            $_
+            'ParameterValue'
             "$_"
         )
     }
@@ -48,32 +47,29 @@ Function Get-ComputerFromOU{
 
     #>
     
-    [cmdletBinding()]
-    Param(
-        [Parameter(Mandatory,Position=0)]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [Alias('OU')]
         [string]
-        $OU,
+        $OrganizationalUnit,
 
-        [Parameter(Mandatory=$false,Position=1,ValueFromPipeline)]
+        [Parameter(Position = 1,ValueFromPipeline)]
         [string[]]
-        $Computer
+        $ComputerName, 
+        
+        [Parameter()]
+        # Could use a good ValidateSet()
+        [string[]]
+        $Properties = 'DistinguishedName','DNSHostName','Name','SAMAccountName'
     )
-
-    If($Computer){
-
-        $Computer | ForEach-Object {
-        
-            Get-ADComputer -Identity $_ -SearchBase $OU -Properties DistinguishedName,DNSHostName,Name,SAMAccountName
-        
+    process {
+        if ($PSBoundParameters.ContainsKey('ComputerName')) {
+            $ComputerName | 
+                Get-ADComputer -SearchBase $OrganizatienalUnit -Properties $Properties
         }
-
+        else {
+            Get-ADComputer -Filter * -SearchBase $OU -Properties DistinguishedName,DNSHostName,Name,SAMAccountName
+        }
     }
-
-    Else{
-    
-        Get-ADComputer -Filter * -SearchBase $OU -Properties DistinguishedName,DNSHostName,Name,SAMAccountName
-    
-    }
-
-
 }
