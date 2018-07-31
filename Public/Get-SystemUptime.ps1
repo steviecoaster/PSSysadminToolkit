@@ -16,64 +16,32 @@ Function Get-SystemUptime {
 
     [cmdletbinding()]
     Param(
-        [Parameter(Mandatory,Position=0)]
+        [Parameter(Mandatory,Position=0,ValueFromPipeline,ValueFromPipelineByPropertyName)]
         [String[]]$Computername
     )
-
-    Begin{}
-
+    
     Process{
-        $Collection = New-Object System.Collections.ArrayList
-
-        Foreach($c in $Computername){
-            $obj = @{
-                'Workstation' = $c
+        
+        Foreach($name in $Computername){
+            $information = [pscustomobject]@{
+                Name = $name
+                PingResult = Test-Connection -ComputerName $name -Count 1 -Quiet
+                RemotingEnabled = [Bool](Test-WSMan -ComputerName $name -ErrorAction SilentlyContinue)
+                LastBootTime = $null
+                SystemUptime = $null
             }
 
-            @('Ping','WMI') |
-            ForEach-Object {
+            If($information.RemotingEnabled){
 
-                Switch($_) {
-
-                    'Ping' {
-                        If(!(Test-Connection -ComputerName $c -Count 1 -Quiet))
-                        { 
-                            $obj.Add('Ping Result',"$c Appears Offline")
-                        
-                        }
-                        
-                        Else
-                        {
-                            $obj.Add('Ping Result','OK')
-                        }
-                        
-                    }
-                        
-                    'WMI' {
-
-                        If([bool](Get-WmiObject win32_operatingsystem -ComputerName $c) -eq $false)
-                        {
-                            $obj.Add('Remote WMI',"$c not accessible via WMI")
-                        }
-                        Else
-                        {
-                            $obj.Add('Remote WMI',"OK")
-                        }
-                    }
-
-                }
+                $OperatingSystem = Get-CimInstance Win32_OperatingSystem -ComputerName $name -Property LocalDateTime,LastBootUpTime
+                $information.LastBootTime = $OperatingSystem.LastBootUpTime
+                $information.SystemUptime = $OperatingSystem.LocalDateTime - $OperatingSystem.LastBootUpTime
             }
 
-                $time = Get-CimInstance win32_operatingsystem -ComputerName $C
-                $Uptime = $time.LocalDateTime - $time.LastBootUpTime
-                $obj.Add('Last Boot Time',$Time.LastBootUpTime)
-                $obj.Add('System Uptime',"$($Uptime.Days) Days $($Uptime.Hours) Hours $($Uptime.Minutes) Minutes $($Uptime.Seconds) Seconds")
-
-                [void]$Collection.Add($obj)
-
+            $information
         }
 
-        $Collection | ForEach-Object { return $_ }
+        
     }
 
     End{}
