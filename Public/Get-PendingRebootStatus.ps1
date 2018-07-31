@@ -9,120 +9,88 @@ function Get-PendingRebootStatus {
 
         [Parameter(Position = 1, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [Alias('Name')]
-        [string]
+        [string[]]
         $Computername = $env:COMPUTERNAME
     )
 
     Begin {}
 
     Process {
-        $PendingUpdates = @{'ComputerName' = $Computername}
-        Switch ($Location) {
-            'WindowsUpdate' {
-
-                If (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
-
-                    $PendingUpdates.Add('WindowsUpatePending', $true)
+        
+        Foreach($Name in $Computername){
+        
+            $PendingUpdates = @{'ComputerName' = $Name }
+        
+            Switch ($Location) {
+                'WindowsUpdate' {
+                    
+                    Switch(Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore){
+                        $true { $PendingUpdates.Add('WindowsUpdatePending',$true)}
+                        $false { $PendingUpdates.Add('WindowsUpddatePending',$false)}
+                    }
+                    
                 }
 
-                Else {
-                    $PendingUpdates.Add('WindowsUpdatePending', $false)
+                'CBS' {
+
+                    Switch(Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore){
+                        $true {$PendingUpdates.Add('CBSPending',$true)}
+                        $false {$PendingUpdates.Add('CBSPending',$false)}
+                    }
+                
                 }
 
-            }
-
-            'CBS' {
-
-                If (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
-                    $PendingUpdates.Add('CBSPending', $true)
-
+                'Session Manager' {
+                    
+                    Switch(Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations){
+                        $true {$PendingUpdates.Add('SessionManager',$true)}
+                        $false {$PendingUpdates.Add('SessionManager',$false)}
+                    }
+                    
+                }
+                'SCCM' {
+                    
+                    Switch(([wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending){
+                        'True' {$PendingUpdates.Add('SCCMPending',$true)}
+                        'False' {$PendingUpdates.Add('SCCMPending',$false)}
+                    }
+                    
                 }
 
-                Else {
+                'All' {
+                    Switch(Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore){
+                        $true { $PendingUpdates.Add('WindowsUpdatePending',$true)}
+                        $false { $PendingUpdates.Add('WindowsUpddatePending',$false)}
+                    }
 
-                    $PendingUpdates.Add('CBSPending', $false)
+                    Switch(Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore){
+                        $true {$PendingUpdates.Add('CBSPending',$true)}
+                        $false {$PendingUpdates.Add('CBSPending',$false)}
+                    }
 
-                }
-            }
+                    Switch(Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations){
+                        $true {$PendingUpdates.Add('SessionManager',$true)}
+                        $false {$PendingUpdates.Add('SessionManager',$false)}
+                    }
 
-            'Session Manager' {
-                If (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations) {
+                    Switch(Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations){
+                        $true {$PendingUpdates.Add('SessionManager',$true)}
+                        $false {$PendingUpdates.Add('SessionManager',$false)}
+                    }
 
-                    $PendingUpdates.Add('SessionManager', $true)
-
-                }
-
-                Else {
-
-                    $PendingUpdates.Add('SessionManager', $false)
-
-                }
-            }
-            'SCCM' {
-
-                If (([wmiclass]"\\.\root\ccm\client\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq 'True') {
-
-                    $PendingUpdates.Add('SCCM', $true)
-                }
-
-                Else {
-
-                    $PendingUpdates.Add('SCCM', $false)
-
-                }
-            }
-            'All' {
-                #Windows Update
-                If (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
-
-                    $PendingUpdates.Add('WindowsUpatePending', $true)
-                }
-
-                Else {
-                    $PendingUpdates.Add('WindowsUpdatePending', $false)
-                }
-
-                #CBS
-                If (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
-                    $PendingUpdates.Add('CBSPending', $true)
-
-                }
-
-                Else {
-
-                    $PendingUpdates.Add('CBSPending', $false)
-
-                }
-
-                #Session Manager
-                If (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations) {
-
-                    $PendingUpdates.Add('SessionManager', $true)
-
-                }
-
-                Else {
-
-                    $PendingUpdates.Add('SessionManager', $false)
-
-                }
-
-                #SCCM
-                If (([wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq 'True') {
-
-                    $PendingUpdates.Add('SCCM', $true)
-                }
-
-                Else {
-
-                    $PendingUpdates.Add('SCCM', $false)
+                    Switch(([wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending){
+                        'True' {$PendingUpdates.Add('SCCMPending',$true)}
+                        'False' {$PendingUpdates.Add('SCCMPending',$false)}
+                    }
 
                 }
 
             }
+
+            [pscustomobject]$PendingUpdates
+        
         }
-
-        [pscustomobject]$PendingUpdates
+    
     }
 
     End {}
