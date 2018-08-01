@@ -13,7 +13,7 @@ Function Get-UsersAndLogOffComputers {
         This will check to see if a user is logged on to a server and if specified, log them off.
         For updated help and examples refer to -Online version.
 
-    .NOTES  
+    .NOTES
         Name: Get-UsersAndLogOffComputers
         Author: The Sysadmin Channel
         Version: 1.01
@@ -65,7 +65,7 @@ Function Get-UsersAndLogOffComputers {
                                     $Session = (query session $Username /Server:$Computer | Select-String -Pattern $Username -EA Stop).ToString().Trim()
                                     $Session = $Session -replace '\s+', ' '
                                     $Session = $Session -replace '>', ''
-     
+
                                         if ($Session.Split(' ')[2] -cne "Disc") {
                                             $Properties = @{Computer  = $Computer
                                                             Username  = $Username.Replace('{}','')
@@ -80,32 +80,32 @@ Function Get-UsersAndLogOffComputers {
                                                             SessionID = $Session.Split(' ')[1]
                                                             State     = 'Disconnected'
                                                             }
-                             
+
                                         }
-                                    $Object = New-Object -TypeName PSObject -Property $Properties | Select Computer, Username, State, Session, SessionID
+                                    $Object = New-Object -TypeName PSObject -Property $Properties | Select-Object Computer, Username, State, Session, SessionID
                                 }
                             }
                         }
-     
+
                 } catch {
                     $ErrorMessage = $Computer + " Error: " + $_.Exception.Message
-     
+
                 } finally {
                     if ($ErrorMessage -and $LogErrors) {
                             Write-Output $ErrorMessage | Out-File $ErrorLogFile -Append
                             $ErrorMessage = $null
                     }
-     
+
                     if ($Logoff -and $Object.SessionID) {
                         LogOff.exe /server:$Computer $Object.SessionID
                     }
-     
+
                 Write-Output $Object
                 $Object = $null
                 }
             }
         }
-     
+
         END {}
-     
+
     }
