@@ -17,13 +17,15 @@ function Get-PendingRebootStatus {
 
     Process {
 
-        Foreach ($Name in $Computername) {
+        
+        Invoke-Command -ComputerName $Computername -ArgumentList $PSBoundParameters -ScriptBlock{ 
 
-
-            $Scriptblock = {
-                $args[0].GetEnumerator() | ForEach-Object { New-Variable -Name $_.Key -Value $_.Value }
+            Param(
+                $BoundParameters
+            )
+                $BoundParameters.GetEnumerator() | ForEach-Object { New-Variable -Name $_.Key -Value $_.Value }
                 $Location | ForEach-Object {
-                    $PendingUpdates = @{'ComputerName' = $Name }
+                    $PendingUpdates = @{'ComputerName' = $env:COMPUTERNAME }
                     Switch ($Location) {
                         'WindowsUpdate' {
 
@@ -85,11 +87,10 @@ function Get-PendingRebootStatus {
 
                     }
 
-                    [pscustomobject]$PendingUpdates
-                }
-            } #end scriptblockhere
-            #$Scriptblock = $Scriptblock.GetNewClosure()
-            Invoke-Command -ComputerName $Name -ScriptBlock $Scriptblock -ArgumentList $PSBoundParameters
+                [pscustomobject]$PendingUpdates
+            }
+            
+           
         }
 
     }
