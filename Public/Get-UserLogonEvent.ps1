@@ -41,8 +41,8 @@ Function Get-UserLogonEvent {
 
         #Covert Hours to milliseconds, used by FilterXML Query
         $ms = ($Hours * 3600000)
-        [xml]$Filterxml = @"
 
+        [xml]$Filterxml = @"
 <QueryList>
 <Query Id="0" Path="Security">
 <Select Path="Security">*[System[EventID='4624' and TimeCreated[timediff(@SystemTime) &lt; = $ms]] and EventData/Data[@Name='TargetUserName'] = '$User']</Select>
