@@ -33,11 +33,11 @@ Function Get-UsersAndLogOffComputers {
                     ValueFromPipelineByPropertyName=$true,
                     Position=0)]
                 [string[]]
-                $ComputerName = $env:COMPUTERNAME,
+                $ComputerName,
 
                 [Parameter()]
                 [string]
-                $Username = $env:USERNAME,
+                $Username,
 
                 [Parameter()]
                 [switch]
