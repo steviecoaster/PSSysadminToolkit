@@ -59,12 +59,12 @@ Function Get-ComputerFromOU{
         $ComputerName, 
         
         [Parameter()]
-        # Could use a good ValidateSet()
+        # Could use a good [ValidateSet()]
         [string[]]
-        $Properties = 'DistinguishedName','DNSHostName','Name','SAMAccountName'
+        $Properties
     )
     process {
-        if ($PSBoundParameters.ContainsKey('ComputerName')) {
+        if ($PSBoundParameters.ContainsKey('Properties')) {
             $ComputerName | 
                 Get-ADComputer -SearchBase $OrganizatienalUnit -Properties $Properties
         }

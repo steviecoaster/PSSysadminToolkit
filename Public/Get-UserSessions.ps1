@@ -33,11 +33,11 @@ Function Get-UsersAndLogOffComputers {
                     ValueFromPipelineByPropertyName=$true,
                     Position=0)]
                 [string[]]
-                $ComputerName = $env:COMPUTERNAME,
+                $ComputerName,
 
                 [Parameter()]
                 [string]
-                $Username = $env:USERNAME,
+                $Username,
 
                 [Parameter()]
                 [switch]
@@ -55,42 +55,61 @@ Function Get-UsersAndLogOffComputers {
         }
 
         PROCESS {
-            Foreach ($Computer in $ComputerName) {
+            
                 try {
-                    $ExplorerProcess = Get-WmiObject Win32_Process -Filter "Name = 'explorer.exe'" -ComputerName $Computer -EA Stop
-                        if ($ExplorerProcess) {
-                            $ExplorerProcess = $ExplorerProcess.GetOwner().User
-                            foreach ($Person in $ExplorerProcess) {
-                                if ($Username -eq $Person) {
-                                    $Session = (query session $Username /Server:$Computer | Select-String -Pattern $Username -EA Stop).ToString().Trim()
-                                    $Session = $Session -replace '\s+', ' '
-                                    $Session = $Session -replace '>', ''
+                    If($ComputerName){
+                        
+                        $ExplorerProcess = Get-WmiObject Win32_Process -Filter "Name = 'explorer.exe'" -ComputerName $Computer -ErrorAction Stop
 
-                                        if ($Session.Split(' ')[2] -cne "Disc") {
-                                            $Properties = @{Computer  = $Computer
-                                                            Username  = $Username.Replace('{}','')
-                                                            Session   = $Session.Split(' ')[0]
-                                                            SessionID = $Session.Split(' ')[2]
-                                                            State     = $Session.Split(' ')[3]
-                                                            }
-                                        } else {
-                                            $Properties = @{Computer  = $Computer
-                                                            Username  = $Username.Replace('{}','')
-                                                            Session   = 'Idle'
-                                                            SessionID = $Session.Split(' ')[1]
-                                                            State     = 'Disconnected'
-                                                            }
+                    }
+                    Else{
+                       
+                        $ExplorerProcess = Get-WmiObject Win32_Process -Filter "Name = 'explorer.exe'"  -ErrorAction Stop
 
-                                        }
-                                    $Object = New-Object -TypeName PSObject -Property $Properties | Select-Object Computer, Username, State, Session, SessionID
+                    }
+                        
+                    if ($ExplorerProcess) {
+                        $ExplorerProcess = $ExplorerProcess.GetOwner().User
+                        foreach ($Person in $ExplorerProcess) {
+                            if ($Username -eq $Person) {
+                                $Session = (query session $Username /Server:$Computer | Select-String -Pattern $Username -EA Stop).ToString().Trim()
+                                $Session = $Session -replace '\s+', ' '
+                                $Session = $Session -replace '>', ''
+
+                                if ($Session.Split(' ')[2] -cne "Disc") {
+                                    $Properties = @{Computer  = $Computer
+                                            Username  = $Username.Replace('{}','')
+                                            Session   = $Session.Split(' ')[0]
+                                            SessionID = $Session.Split(' ')[2]
+                                            State     = $Session.Split(' ')[3]
+                                            }
+                       
+                                } 
+                                
+                                else {
+                                    $Properties = @{Computer  = $Computer
+                                        Username  = $Username.Replace('{}','')
+                                        Session   = 'Idle'
+                                        SessionID = $Session.Split(' ')[1]
+                                        State     = 'Disconnected'
+                                    }
+
                                 }
+                                
+                                $Object = New-Object -TypeName PSObject -Property $Properties | Select-Object Computer, Username, State, Session, SessionID
                             }
                         }
+                    }
 
-                } catch {
+                } 
+                
+                catch {
+                
                     $ErrorMessage = $Computer + " Error: " + $_.Exception.Message
 
-                } finally {
+                } 
+                
+                finally {
                     if ($ErrorMessage -and $LogErrors) {
                             Write-Output $ErrorMessage | Out-File $ErrorLogFile -Append
                             $ErrorMessage = $null
@@ -100,10 +119,12 @@ Function Get-UsersAndLogOffComputers {
                         LogOff.exe /server:$Computer $Object.SessionID
                     }
 
-                Write-Output $Object
-                $Object = $null
+                    
+                    
                 }
-            }
+            
+            return $Object
+            
         }
 
         END {}
