@@ -1,4 +1,28 @@
 Function Set-RemoteExecutionPolicy{
+    <#
+        .SYNOPSIS
+        Change the remote execution policy of a remote machine to allow powershell script execution
+        
+        .DESCRIPTION
+        Saves the current system setting, changes execution policy of the remote system via a remote registry call, and reverts setting after scriptblock finishes executing
+        If you do not specify a scriptblock, the execution policy remains changed on the remote system.
+
+        .PARAMETER Computername
+        The computername(s) to change and execute against
+        
+        .PARAMETER ExecutionPolicy
+        The Execution Policy you desire the remote system to have
+        
+        .PARAMETER Scriptblock
+        The code to execute on the remote system
+        
+        .EXAMPLE
+        Set-RemoteExecutionPolicy -Computername fileserver02 -ExecutionPolicy Bypass
+
+        .EXAMPLE
+        Set-RemoteExecutionPolicy -Computername fileserver02 -ExecutionPolicy Bypass -Scriptblock "& \\fileserver\scripts\MyScript.ps1"
+        
+        #>
     [cmdletBinding()]
     Param(
         [Parameter(Mandatory,Position=0,ValueFromPipeline,ValueFromPipelineByPropertyName)]
@@ -58,21 +82,25 @@ Function Set-RemoteExecutionPolicy{
                 }
             }
 
-            Invoke-Command -ComputerName $_ -ScriptBlock $Scriptblock
+            If($Scriptblock){
 
-            Switch([System.Runtime.InteropServices.Marshal]::SizeOf([System.IntPtr])){
-                4 {
+                Invoke-Command -ComputerName $_ -ScriptBlock $Scriptblock
+
+                Switch([System.Runtime.InteropServices.Marshal]::SizeOf([System.IntPtr])){
+                    4 {
+                        
+                        $RevertSetting = [scriptblock]::Create("reg add \\$_\HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /t REG_SZ /d $CurrentSetting /f")
+                        $RevertSetting.Invoke()
                     
-                    $RevertSetting = [scriptblock]::Create("reg add \\$_\HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /t REG_SZ /d $CurrentSetting /f")
-                    $RevertSetting.Invoke()
+                    }
+    
+                    8 {
+                        
+                        $RevertSetting = [scriptblock]::Create("reg add \\$_\HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /t REG_SZ /d $CurrentSetting /f")
+                        $RevertSetting.Invoke()
+    
+                    }
                 
-                }
-
-                8 {
-                    
-                    $RevertSetting = [scriptblock]::Create("reg add \\$_\HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell /v ExecutionPolicy /t REG_SZ /d $CurrentSetting /f")
-                    $RevertSetting.Invoke()
-
                 }
             
             }
