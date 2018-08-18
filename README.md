@@ -18,3 +18,4 @@ To test this module, work is being done in the Dev branch, so be sure to downloa
 - Get-ComputerFromOU
 - Get-PendingRebootStatus - _Avoid using "All" if you don't use SCCM for the moment_
 - Get-UserLogonEvent
+- Find-Service
