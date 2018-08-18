@@ -4,7 +4,7 @@ Function New-ImplicitSession {
         Create a new Implicit remoting session
         
         .DESCRIPTION
-        Access remote modules by implicityly importing them into your current powershell session
+        Access remote modules by implicity importing them into your current powershell session
         
         .PARAMETER Computername
         The computername which has the module you wish to use installed
