@@ -70,7 +70,9 @@ Function New-ImplicitSession {
         $SessionInfo.Add("LoadedModule",$Module) 
         
         return [pscustomobject]$SessionInfo
-    
+        Write-Warning -Message "Remember to run Get-PSSession | Remove-PSSession when finished!"
+
+        
     }
 
 }
