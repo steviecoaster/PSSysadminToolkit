@@ -22,7 +22,8 @@ Function Set-RemoteExecutionPolicy{
         .EXAMPLE
         Set-RemoteExecutionPolicy -Computername fileserver02 -ExecutionPolicy Bypass -Scriptblock "& \\fileserver\scripts\MyScript.ps1"
         
-        #>
+    #>
+    
     [cmdletBinding()]
     Param(
         [Parameter(Mandatory,Position=0,ValueFromPipeline,ValueFromPipelineByPropertyName)]
