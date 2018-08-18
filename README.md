@@ -19,4 +19,4 @@ To test this module, work is being done in the Dev branch, so be sure to downloa
 - Get-PendingRebootStatus - _Avoid using "All" if you don't use SCCM for the moment_
 - Get-UserLogonEvent
 - Find-Service
-- New-ImplicitSession
+- New-ImplicitSession - _This one is still a bit "chatty"_
