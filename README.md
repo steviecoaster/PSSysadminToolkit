@@ -4,7 +4,9 @@ Thanks for checking out PSSysadminToolkit! This module includes a variety of Pow
 
 _This project is currently in active development. Usage of scripts is at your own risk. Feedback from usage is encouraged. If you encounter a bug, or see an ehancement, pleae file an Issue. And, if you are saavy with Powershell, feel free to submit a Pull Request and take a crack at the fix/enhancement yourself!_
 
-To test this module, work is being done in the Dev branch, so be sure to download from there.
+To test this module, work is being done in the Dev branch, so be sure to download from there for the most up-to-date code.
+
+If you would like to download the latest relase click here: https://github.com/steviecoaster/PSSysadminToolkit/releases/tag/v0.2-beta
 
 ## Currently testable functions
 
