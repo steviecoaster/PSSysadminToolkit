@@ -6,7 +6,7 @@ _This project is currently in active development. Usage of scripts is at your ow
 
 To test this module, work is being done in the Dev branch, so be sure to download from there for the most up-to-date code.
 
-If you would like to download the latest relase click here: https://github.com/steviecoaster/PSSysadminToolkit/releases/tag/v0.2-beta
+If you would like to download the latest relase click [here](https://github.com/steviecoaster/PSSysadminToolkit/releases/tag/v0.2-beta)
 
 ## Currently testable functions
 
