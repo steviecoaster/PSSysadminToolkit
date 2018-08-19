@@ -30,7 +30,7 @@ Function Get-ADUserProperties {
 
         #$managerDetails = Get-ADUser $user.manager -Properties displayName 
         #$managerDetails = Get-ADUser (Get-ADUser $Username -properties manager).manager -properties displayName
-        $UserGroups = Get-ADPrincipalGroupMembership -Identity $User | Get-ADGroup -Properties * -ErrorAction SilentlyContinue| select name, description
+        $UserGroups = Get-ADPrincipalGroupMembership -Identity $User | Get-ADGroup -Properties * -ErrorAction SilentlyContinue| Select-Object name, description
 
         $UserProperties = [pscustomobject][ordered]@{
                     "Name" = $user.name

@@ -39,7 +39,7 @@ Function Get-UserLogonEvent {
 
     Process {
 
-        #Covert Hours to milliseconds, used by FilterXML Query
+        #Convert Hours to milliseconds, used by FilterXML Query
         $ms = ($Hours * 3600000)
 
         [xml]$Filterxml = @"
