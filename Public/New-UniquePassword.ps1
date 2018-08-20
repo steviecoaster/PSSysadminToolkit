@@ -1,10 +1,10 @@
 Function New-UniquePassword {
     <#
     .SYNOPSIS
-    Generate and display a randomly generated Password.
+    Generate and display a randomly generated password.
 
     .PARAMETER Length
-    The length of the generated Password
+    The length of the generated password
 
     .PARAMETER IncludeSymbols
     Include symbols in the randomly generated password

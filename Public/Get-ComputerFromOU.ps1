@@ -66,7 +66,7 @@ Function Get-ComputerFromOU{
     process {
         if ($PSBoundParameters.ContainsKey('Properties')) {
             $ComputerName | 
-                Get-ADComputer -SearchBase $OrganizatienalUnit -Properties $Properties
+                Get-ADComputer -SearchBase $OrganizationalUnit -Properties $Properties
         }
         else {
             Get-ADComputer -Filter * -SearchBase $OU -Properties DistinguishedName,DNSHostName,Name,SAMAccountName
