@@ -8,7 +8,7 @@ Function New-DesktopShortcut {
         The full path of the executable/file to which you are creating a shortcut.
 
         .PARAMETER ShortcutPath
-        The path name of the new Shortcut.
+        The path name of the new Shortcut. Must end in .lnk or .url
 
         .EXAMPLE
         New-DesktopShortcut -Target "C:\Program Files(x86)\SuperSoftware\SuperCool.exe" -ShortcutPath = "$env:Public\Desktop\SuperCool.lnk"
