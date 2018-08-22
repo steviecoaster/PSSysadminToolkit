@@ -22,3 +22,5 @@ If you would like to download the latest release click [here](https://github.com
 - Get-UserLogonEvent
 - Find-Service
 - New-ImplicitSession - _This one is still a bit "chatty"_
+- New-DesktopShortcut
+- New-SharedPrinter
