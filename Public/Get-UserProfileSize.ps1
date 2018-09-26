@@ -13,7 +13,17 @@ function Get-UserProfileSize {
         The remote computer to query for data
 
         .EXAMPLE
-
+        Get-UserProfileSize
+        
+        .EXAMPLE
+        Get-UserProfileSize -IncludeSpecial
+        
+        .EXAMPLE
+        Get-UserProfileSize -Computername foobar
+        
+        .EXAMPLE
+        (Get-ADComputer foobar).Name | Get-UserProfileSize
+        
     #>
     [CmdletBinding()]
     param(
