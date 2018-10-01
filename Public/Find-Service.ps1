@@ -79,7 +79,6 @@ function Find-Service {
                             Service        = $Params -join ', '
                             Message        = "$Params not found on this system"
                         }
-
                     }#inner else
 
                 }#invoke
