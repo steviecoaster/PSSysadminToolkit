@@ -1,8 +1,8 @@
-Function Find-Service {
+function Find-Service {
     <#
         .SYNOPSIS
         Find a specified service on remote endpoints
-        .PARAMETER Computername
+        .PARAMETER ComputerName
         The remote endpoint(s) to query
         .PARAMETER ServiceDisplayName
         The Display Name of the service to query
@@ -15,84 +15,73 @@ Function Find-Service {
         .EXAMPLE
         (Get-ADComputer -Filter * -Searchbase $ou).Name | Find-Service -Service 'Windows Audio'
     #>
-    [cmdletBinding()]
-    Param(
-    [Parameter(Mandatory,Position=0,ValueFromPipeline,ValueFromPipeLineByPropertyName)]
-    [Alias('Name')]
-    [string[]]
-    $ComputerName,
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0, Mandatory, ValueFromPipelineByPropertyName)]
+        [Alias('PSComputerName', 'PC')]
+        [ValidateNotNullOrEmpty()]
+        [string[]]
+        $ComputerName,
 
-    [Parameter(Mandatory,Position=1)]
-    [Alias('Service')]
-    [string]
-    $ServiceDisplayName
+        [Parameter(Mandatory, Position = 1, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Alias('Name', 'ServiceName')]
+        [ValidateNotNullOrEmpty()]
+        [string[]]
+        $ServiceDisplayName
     )
-
-    Process {
-
-        $Computername | ForEach-Object {
-
-            If(!(Test-Connection $psitem -Count 1 -Quiet)){
-                $offlineError = [pscustomobject]@{
-                Computername = $psitem
-                TargetOffline = $true
-                Message = "Ping failed to this endpoint"
+    process {
+        $ComputerName | ForEach-Object {
+            if (-not (Test-Connection -ComputerName $_ -Count 1 -Quiet)) {
+                Write-Error [PSCustomObject]@{
+                    Computername   = $_
+                    TargetOffline  = $true
+                    WSManAvailable = $null
+                    Service        = $null
+                    Message        = 'Ping Failed'
                 }
 
-                Return $offlineError
+                return
             }
+            else {
+                try {
+                    Test-WSMan -ComputerName $_ -ErrorAction Stop > $null
+                }
+                catch {
+                    Write-Error [PSCustomObject]@{
+                        Computername   = $_
+                        TargetOffline  = $false
+                        WSManAvailable = $false
+                        Service        = $null
+                        Message        = "WSMan Unresponsive"
+                    }
 
-           
-
-            Else {
-
-             Try { 
-                 
-                Test-WSMan $psitem -ErrorAction Stop | Out-Null 
-            
-            }
-            
-            Catch { 
-                
-                $WSManError = [pscustomobject]@{
-                Computername = $tryitem
-                WSManError = $true
-                Message = "Unable to remote to endpoint"
+                    return
                 }
 
-                return $WSManError
+                Invoke-Command -ComputerName $_ -ArgumentList $ServiceDisplayName -ScriptBlock {
+                    param($Params)
 
-            }
+                    $Service = Get-Service -DisplayName $Params
 
-            Invoke-Command -ComputerName $psitem -ArgumentList $ServiceDisplayName -ScriptBlock {
-                Param($Params)
-                $Service = Get-Service -DisplayName $Params
-                If($Service){
-
-                    $ServiceData = [pscustomobject]@{
-                    Computername = $env:COMPUTERNAME
-                    Service = $Service.DisplayName
-                    StartupType = $Service.StartType
-                    Status = $Service.Status
+                    if ($Service) {
+                        return [PSCustomObject]@{
+                            Computername = $env:COMPUTERNAME
+                            Service      = $Service.DisplayName -join ', '
+                            StartupType  = $Service.StartType
+                            Status       = $Service.Status
+                        }
                     }
+                    else {
+                        Write-Error [PSCustomObject]@{
+                            Computername   = $env:COMPUTERNAME
+                            TargetOffline  = $false
+                            WSManAvailable = $true
+                            Service        = $Params -join ', '
+                            Message        = "$Params not found on this system"
+                        }
+                    }#inner else
 
-                    return $ServiceData
-
-                }#inner if
-
-                Else {
-
-                $ServiceData = [pscustomobject]@{
-                    Computername = $env:COMPUTERNAME
-                    Service = $Params
-                    Error = "$Params not found on this system"
-                    }
-
-                 return $ServiceData
-
-                }#inner else
-
-            }#invoke
+                }#invoke
 
             }#outer else
 
@@ -100,4 +89,4 @@ Function Find-Service {
 
     }#process
 
-}#Function
+}#function
