@@ -6,7 +6,7 @@ clone_folder: c:\projects\SysAdminToolkit
 
 environment:
   NugetApiKey:
-    secure: # TODO: FILL ME IN IF YOU WANT TO PUBLISH TO GALLERY WITH A BUILD SCRIPT
+    secure: HDNrQQcdg6S2WrxowPwwKd/IFhYLwahk2cJH1+TJWXs=
 
 install:
   - ps: >-
