@@ -27,3 +27,5 @@ If you would like to download the latest release click [here](https://github.com
 - New-DesktopShortcut
 - New-SharedPrinter
 - Get-UserProfile
+- Get-UserProfileSize
+- Send-WakeOnLANPacket

@@ -23,27 +23,35 @@ function New-AffectedServicesAlert {
     #>
     [cmdletBinding()]
     Param(
-        [Parameter(Mandatory,Position=0)]
+        [Parameter(Mandatory, Position = 0)]
         [string]
         $AffectedService,
 
-        [Parameter(Mandatory,Position=1)]
+        [Parameter(Mandatory, Position = 1)]
         [string]
         $Reason,
 
-        [Parameter(Mandatory,Position=2)]
+        [Parameter(Mandatory, Position = 2)]
         [string]
         $OutageLength,
 
-        [Parameter(Mandatory,Position=3)]
+        [Parameter(Mandatory, Position = 3)]
         [string[]]
-        $Stakeholders
+        $Stakeholders,
+
+        [Parameter(Mandatory, Position = 4)]
+        [string]
+        $SmtpServer,
+
+        [Parameter(Mandatory, Position = 5)]
+        [string]
+        $FromAddress
     )
 
-    Begin {}
+    Begin { }
 
     Process {
-    $content = @"
+        $content = @"
     <!DOCTYPE html>
     <html>
     <head>
@@ -83,17 +91,17 @@ function New-AffectedServicesAlert {
     </html>
 "@
 
-    $mailParams = @{
-        'SmtpServer' = 'smtp.server.fqdn' #edit this value
-        'Subject' = "Affected Services Alert"
-        'From' = "servicealert@company.com" #edit this value
-        'To' = $Stakeholders
-        'Body' = $content
-        'BodyAsHtml' = $true
+        $mailParams = @{
+            'SmtpServer' = $SmtpServer #edit this value
+            'Subject'    = "Affected Services Alert"
+            'From'       = $FromAddress #edit this value
+            'To'         = $Stakeholders
+            'Body'       = $content
+            'BodyAsHtml' = $true
 
-    }
+        }
 
-    Send-MailMessage @mailParams
+        Send-MailMessage @mailParams
 
     }
 
