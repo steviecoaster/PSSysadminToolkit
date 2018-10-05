@@ -6,86 +6,123 @@ function Get-MappedDrive {
     .PARAMETER Computername
     The computer you wish to collect data from
 
+    .PARAMETER CimSession
+    A CimSession, or array of Cim sessions, created using New-CimSession. The CimSession parameter allows customisation of the connection method, including the protocol and any credentials.
+
+    .PARAMETER DriveName
+    By default, all mapped drives are returned. The list may be filtered using this parameter. Names should not include ":".
+
+    .EXAMPLE
+    Get-MappedDrive
+
+    Get the drives mapped by all users on the current machine.
+
     .EXAMPLE
     Get-MappedDrive -Computername RECEPTION-PC
 
+    Get the drives mapped by all users on RECEPTION-PC
+
     .EXAMPLE
-    (Get-ADComputer -Filter * -Searchbase "OU=Sales,DC=contoso,DC=com").Name | Foreach-Object { Get-MappedDrive $_ }
+    Get-ADComputer -Filter * -Searchbase "OU=Sales,DC=contoso,DC=com" -Properties dnsHostName | Get-MappedDrive
+
+    Get drives mapped by all users for all computers in the Sales OU in Active Directory.
     #>
-    [CmdletBinding()]
+
+    [CmdletBinding(DefaultParameterSetName = 'ComputerName')]
     [Alias('Get-MappedDrives')]
     param(
-        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [Alias('PSComputerName')]
+        [Parameter(Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'ComputerName')]
+        [Alias('PSComputerName', 'DnsHostName')]
         [ValidateNotNullOrEmpty()]
         [string[]]
-        $ComputerName,
+        $ComputerName = $env:COMPUTERNAME,
+
+        [Parameter(Mandatory, ParameterSetName = 'CimSession')]
+        [CimSession[]]$CimSession,
 
         [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
         [Alias('Name')]
         [string[]]
         $DriveName
     )
-    begin {}
+
+    begin {
+        $ErrorActionPreference = 'Stop'
+        [UInt32]$HKEY_USERS = 2147483651
+    }
+
     process {
-        $ComputerName | ForEach-Object {
-            if (Test-Connection -ComputerName $_ -Count 1 -Quiet) {
-                #Get remote explorer session to identify current user
-                $Explorer = Get-WmiObject -ComputerName $_ -Class 'Win32_Process' |
-                    Where-Object Name -eq 'explorer.exe'
+        if ($PSCmdlet.ParameterSetName -eq 'ComputerName') {
+            $computers = $ComputerName
+        }
+        else {
+            $computers = $CimSession
+        }
 
-                #If a session was returned check HKEY_USERS for Network drives under their SID
-                if ($Explorer) {
-                    $Hive = 2147483651L
-                    $SID = $Explorer.GetOwnerSid().SID
-                    $Owner = $Explorer.GetOwner()
+        $getParams = @{
+            ClassName   = 'Win32_Process'
+            Filter      = 'Name="explorer.exe"'
+            Property    = 'Name'
+        }
+        foreach ($computer in $computers) {
+            $connectionParams = @{
+                $PSCmdlet.ParameterSetName = $computer
+            }
 
-                    $RegistryProvider = Get-WmiObject -List -Namespace "root\default" -ComputerName $_ |
-                        Where-Object Name -eq "StdRegProv"
-                    $DriveList = $RegistryProvider.EnumKey($Hive, "$SID\Network")
+            try {
+                $explorer = Get-CimInstance @getParams @connectionParams
 
-                    #If the SID network has mapped drives iterate and report on said drives
-                    if ($DriveList.sNames.Count -gt 0) {
-                        $MappedDrivesToQuery = if ($DriveName) {
-                            $DriveList.sNames.ToUpper() | Where-Object {$_ -in $DriveName}
+                if ($explorer) {
+                    $sid = ($explorer | Invoke-CimMethod -MethodName GetOwnerSid).Sid
+                    $owner = $explorer | Invoke-CimMethod -MethodName GetOwner
+
+                    $invokeParams = @{
+                        ClassName = 'StdRegProv'
+                        Namespace = 'root/default'
+                    }
+                    $driveList = Invoke-CimMethod @invokeParams @connectionParams -MethodName EnumKey -Arguments @{
+                        hDefKey     = $HKEY_USERS
+                        sSubKeyName = Join-Path $SID 'Network'
+                    }
+                    if ($PSBoundParameters.ContainsKey('DriveName')) {
+                        $driveList.sNames = $driveList.sNames | Where-Object { $_ -in $DriveName }
+                    }
+
+                    foreach ($drive in $driveList.sNames) {
+                        $remotePath = Invoke-CimMethod @invokeParams @connectionParams -MethodName GetStringValue -Arguments @{
+                            hDefKey     = $HKEY_USERS
+                            sSubKeyName = [System.IO.Path]::Combine($SID, 'Network', $drive)
+                            sValueName  = 'RemotePath'
                         }
-                        else {
-                            $DriveList.sNames.ToUpper()
-                        }
-
-                        foreach ($Drive in $MappedDrivesToQuery) {
-                            $MappedDrivePath = $RegistryProvider.GetStringValue($Hive, "$($SID)\Network\$($Drive)", "RemotePath").sValue
-
-                            [PSCustomObject]@{
-                                'DriveOwner'  = "{0}\{1}" -f $Owner.Domain, $Owner.User
-                                'DriveLetter' = "${Drive}:\"
-                                'RootPath'    = $MappedDrivePath
-                            }
+                        
+                        [PSCustomObject]@{
+                            DriveOwner  = '{0}\{1}' -f $Owner.Domain, $Owner.User
+                            DriveLetter = '{0}:\' -f $drive.ToUpper()
+                            RootPath    = $remotePath.sValue
                         }
                     }
                 }
                 else {
-                    $ErrorRecord = [System.Management.Automation.ErrorRecord]::new(
+                    $errorRecord = [System.Management.Automation.ErrorRecord]::new(
                         [System.UnauthorizedAccessException]::new('Unable to find a logged on user on target machine'),
                         'NoUserFound',
                         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                        $_
+                        $computer
                     )
 
-                    $PSCmdlet.WriteError($ErrorRecord)
+                    $PSCmdlet.WriteError($errorRecord)
                 }
             }
-            else {
+            catch {
                 $ErrorRecord = [System.Management.Automation.ErrorRecord]::new(
-                    [System.TimeoutException]::new('Unable to establish connection to target machine'),
-                    'ConnectionTimedOut',
+                    [System.TimeoutException]::new('Unable to query WMI on the target machine', $_.Exception),
+                    'CimQueryFailed',
                     [System.Management.Automation.ErrorCategory]::ConnectionError,
-                    $_
+                    $computer
                 )
 
                 $PSCmdlet.WriteError($ErrorRecord)
             }
         }
     }
-    end {}
 }
