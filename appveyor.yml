@@ -10,7 +10,7 @@ environment:
 
 install:
   - ps: >-
-      # TODO: EXECUTE INSTALL COMMANDS HERE
+      
       Install-Module Psake, PSDepend, PSDeploy, BuildHelpers -Scope CurrentUser
       Install-Module -Name Pester -Force -SkipPublisherCheck -Scope CurrentUser
 
