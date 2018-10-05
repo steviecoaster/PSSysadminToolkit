@@ -41,7 +41,6 @@ function Get-MappedDrive {
         [CimSession[]]$CimSession,
 
         [Parameter(Position = 1, ValueFromPipelineByPropertyName)]
-        [Alias('Name')]
         [string[]]
         $DriveName
     )
