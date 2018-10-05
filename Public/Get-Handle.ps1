@@ -25,39 +25,35 @@ function Get-Handle {
         Get-Handle -ProcessID 4*
 
         #>
-    [cmdletBinding()]
-    Param(
-        [Parameter(Mandatory=$false,Position=0)]
-        [string]
-        $Name,
+    [CmdletBinding(DefaultParameterSetName = 'ProcessName')]
+    param(
+        [Parameter(Position = 0, Mandatory, ParameterSetName = 'ProcessName', ValueFromPipeline)]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Name')]
+        [string[]]
+        $ProcessName,
 
-        [Parameter(Mandatory=$false,Position=1)]
-        [string]
+        [Parameter(Position = 1, Mandatory, ParameterSetName = 'ProcessID', ValueFromPipeline)]
+        [ValidateNotNull()]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int[]]
         $ProcessID
     )
-
-    Begin {}
-
-    Process {
-
-        If($Name){
-
-            $Process = Get-Process |
-                       Where-Object { $_.Name -like $Name } |
-                       Select-Object -Property Handle,Handles,HandleCount,Name,ID
-
-            return $Process
-        }
-
-        If($ProcessID){
-
-            $Process = Get-Process |
-                       Where-Object { $_.Id -like $ProcessID }|
-                       Select-Object -Property Handle,Handles,HandleCount,Name,Id
-
-            return $Process
+    begin {}
+    process {
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            'ProcessName' {
+                $ProcessName |
+                    Get-Process -Name {$_} |
+                    Select-Object -Property Handle, Handles, HandleCount, Name, Id
+            }
+            'ProcessID' {
+                $ProcessID |
+                    Get-Process -Id {$_} |
+                    Select-Object -Property Handle, Handles, HandleCount, Name, Id
+            }
         }
     }
-
-    End {}
+    end {}
 }

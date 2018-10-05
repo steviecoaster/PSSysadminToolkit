@@ -1,4 +1,3 @@
-#Requires -Module ActiveDirectory
 
 #Region register every OU in the domain for autocompletion in the OU parameter
 Register-ArgumentCompleter -CommandName Get-ComputerFromOU -ParameterName OU -ScriptBlock {
@@ -66,7 +65,7 @@ Function Get-ComputerFromOU{
     process {
         if ($PSBoundParameters.ContainsKey('Properties')) {
             $ComputerName | 
-                Get-ADComputer -SearchBase $OrganizatienalUnit -Properties $Properties
+                Get-ADComputer -SearchBase $OrganizationalUnit -Properties $Properties
         }
         else {
             Get-ADComputer -Filter * -SearchBase $OU -Properties DistinguishedName,DNSHostName,Name,SAMAccountName
