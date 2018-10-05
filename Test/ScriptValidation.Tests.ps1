@@ -27,6 +27,6 @@ Describe "General project validation: $ModuleName" {
     }
 
     It "'$ModuleName' can import cleanly" {
-        {Import-Module (Join-Path $ModuleRoot "PS$ModuleName.psm1") -Force} | Should -Not -Throw
+        {Import-Module (Join-Path $ModuleRoot "$ModuleName.psm1") -Force} | Should -Not -Throw
     }
 }
