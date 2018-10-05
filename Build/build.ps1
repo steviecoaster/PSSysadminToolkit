@@ -12,7 +12,7 @@ if ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and
 # Grab nuget bits, set build variables, start build.
 Get-PackageProvider -Name NuGet -ForceBootstrap > $null
 
-Import-Module -Name Psake, BuildHelpers
+Resolve-Module Psake, PSDeploy, Pester , BuildHelpers
 
 Set-BuildEnvironment
 
