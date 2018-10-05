@@ -1,6 +1,6 @@
 Function Get-UsersAndLogOffComputers {
 
-    #requires -Module ActiveDirectory
+   
     #requires -RunAsAdministrator
     #requires -Version 3.0
 
