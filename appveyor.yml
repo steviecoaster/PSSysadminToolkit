@@ -11,7 +11,7 @@ environment:
 install:
   - ps: >-
       
-      Install-Module Psake, PSDepend, PSDeploy, BuildHelpers -Scope CurrentUser
+      Install-Module Psake, PSDepend, PSDeploy, BuildHelpers -Scope CurrentUser -Force
 
 # Skip on updates to the readme.
 # We can force this by adding [skip ci] or [ci skip] anywhere in commit message
