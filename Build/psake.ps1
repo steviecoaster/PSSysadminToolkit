@@ -69,7 +69,7 @@ STATUS: Testing with PowerShell $PSVersion
 
     # Gather test results. Store them in a variable and file
     $PesterParams = @{
-        Path         = "$ProjectRoot/Tests"
+        Path         = "$ProjectRoot/Test"
         PassThru     = $true
         OutputFormat = 'NUnitXml'
         OutputFile   = "$ProjectRoot/$TestFile"
