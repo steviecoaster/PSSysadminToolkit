@@ -6,7 +6,7 @@ clone_folder: c:\projects\SysAdminToolkit
 
 environment:
   NugetApiKey:
-    secure: HDNrQQcdg6S2WrxowPwwKd/IFhYLwahk2cJH1+TJWXs=
+    secure: I0jjhtWPHh+WKzCVgkxCpR2PWclajUssP1HXK84TsXMOxnFalhr+aR3IjL5qhCop
 
 install:
   - ps: >-
