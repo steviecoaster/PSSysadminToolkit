@@ -1,4 +1,3 @@
-#Requires -Module ActiveDirectory
 
 #Region register every OU in the domain for autocompletion in the OU parameter
 Register-ArgumentCompleter -CommandName Get-ComputerFromOU -ParameterName OU -ScriptBlock {
