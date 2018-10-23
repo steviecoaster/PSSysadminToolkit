@@ -40,7 +40,7 @@ Function New-ShortUri {
 
     .EXAMPLE
 
-    Get-Clipbaord | New-ShortUri
+    Get-Clipboard | New-ShortUri
 
     #>
 
