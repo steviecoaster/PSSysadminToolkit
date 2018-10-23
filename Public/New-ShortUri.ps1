@@ -44,7 +44,7 @@ Function New-ShortUri {
 
     #>
 
-    [cmdletBinding()]
+    [cmdletBinding(HelpUri ='https://github.com/steviecoaster/PSSysadminToolkit/blob/Dev/Help/New-ShortUri.md')]
     [Alias('ShortUri')]
     Param(
         [Parameter(Position = 0, ValueFromPipeline)]
