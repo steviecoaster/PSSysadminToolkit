@@ -61,7 +61,7 @@ Function New-ShortUri {
 
         [Parameter(Position = 3)]
         [Switch]
-        $TestLink
+        $Test
 
     )
 
