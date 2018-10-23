@@ -29,3 +29,4 @@ If you would like to download the latest release click [here](https://github.com
 - Get-UserProfile
 - Get-UserProfileSize
 - Send-WakeOnLANPacket
+- New-ShortUri
