@@ -94,33 +94,3 @@ STATUS: Testing with PowerShell $PSVersion
         Write-Error "Failed $($TestResults.FailedCount) tests; build failed!"
     }
 }
-
-Task 'Build' -Depends 'Test' {
-    Write-Information @Continue @"
-
-$Lines
-"@
-    # Load the module, read the exported functions, update the psd1 FunctionsToExport
-    Set-ModuleFunctions
-
-    # Bump the module version if we didn't already
-    try {
-        $GalleryVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName -ErrorAction Stop
-        $GithubVersion = Get-MetaData -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -ErrorAction Stop
-        if ($GalleryVersion -ge $GithubVersion) {
-            Update-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -Value $GalleryVersion -ErrorAction stop
-        }
-    }
-    catch {
-        Write-Information @Continue @"
-Failed to update version for '$env:BHProjectName': $_.
-Continuing with existing version.
-"@
-    }
-}
-
-Task Deploy -Depends Build {
-    Write-Information $Lines @Continue
-
-    Invoke-PSDeploy @DeploymentParams
-}
