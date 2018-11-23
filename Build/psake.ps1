@@ -5,7 +5,7 @@ param()
 # Init some things
 Properties {
     # Find the build folder based on build system
-    $ProjectRoot = Resolve-Path -Path "$PSScriptRoot/.."
+    $ProjectRoot = Resolve-Path -Path "$PSScriptRoot\.."
 
     $Timestamp = Get-Date -Format "yyyyMMdd-hhmmss"
     $PSVersion = $PSVersionTable.PSVersion
@@ -50,10 +50,10 @@ STATUS: Testing with PowerShell $PSVersion
 
     # Gather test results. Store them in a variable and file
     $PesterParams = @{
-        Path         = "$ProjectRoot/Test"
+        Path         = "$ProjectRoot\Test"
         PassThru     = $true
         OutputFormat = 'NUnitXml'
-        OutputFile   = "$ProjectRoot/$TestFile"
+        OutputFile   = "$ProjectRoot\$TestFile"
     }
     $TestResults = Invoke-Pester @PesterParams
 

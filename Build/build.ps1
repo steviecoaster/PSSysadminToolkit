@@ -4,10 +4,7 @@ param (
 )
 
 # Automatically kick off deploy task when committing to master (skip deploy on PRs to master)
-if ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and
-    $env:APPVEYOR_REPO_TAG_NAME) {
-    $Task = 'Deploy'
-}
+
 
 # Grab nuget bits, set build variables, start build.
 Get-PackageProvider -Name NuGet -ForceBootstrap > $null

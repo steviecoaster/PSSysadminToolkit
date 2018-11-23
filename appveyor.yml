@@ -18,7 +18,7 @@ install:
 skip_commits:
   message: /update(d?) readme.*/
 
-build: false
+build: true
 
 #Kick off the CI/CD pipeline
 test_script:

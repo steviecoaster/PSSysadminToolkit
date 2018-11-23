@@ -1,23 +1,47 @@
-steps:
+pr:
+- master
 
-#Test stuff
-- task: Powershell@0
-  displayName: 'Run Tests'
-  inputs:
-    targetType: 'filePath' # Optional. Options: filePath, inline
-    filePath: ./Build/build.ps1 # Required when targetType == FilePath
-    #script: 'Get-Location' # Required when targetType == Inline
-    errorActionPreference: 'stop' # Optional. Options: stop, continue, silentlyContinue
-    failOnStderr: true # Optional
-    #ignoreLASTEXITCODE: false # Optional
-    #pwsh: true # Optional
-    #workingDirectory: /home/vsts/work/1/s/
+jobs:
 
-#Gallery Stuff
-- task: Powershell@1
-  displayName: 'Publish to Gallery'
+- job: BuildAndTest
+  pool:
+    vmImage: 'win1803'
+
+  steps:
+  - task: PowerShell@2
+    displayName: 'Setup Build Environment'
+
     inputs:
-      targetType: 'filePath'
-      filePath: ./PSGallery.ps1
+
+      targetType: 'inline'
+      script: |
+        Install-Module -Name Psake, PSDeploy, BuildHelpers -Force -Scope CurrentUser
+        Install-Module -Name Pester -Force -SkipPublisherCheck -Scope CurrentUser
       errorActionPreference: 'stop'
       failOnStderr: true
+      pwsh: false
+
+  - task: PowerShell@2
+    displayName: 'Run Pester Tests'
+
+    inputs:
+      targetType: 'filePath'
+      filePath: ./Build/Build.ps1
+      arguments: -Task Build
+
+      errorActionPreference: 'stop'
+      failOnStderr: true
+      pwsh: false
+
+  - task: PowerShell@2
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/master')
+    displayName: 'Deploy to Gallery'
+
+    inputs:
+      targetType: 'filePath'
+      arguments: $(GalleryApiKey)
+      filePath: ./PSGallery.ps1
+
+      errorActionPreference: 'stop'
+      failOnStderr: true
+      pwsh: true

@@ -1,11 +1,16 @@
-if ($ENV:BHProjectName -and $ENV:BHProjectName.Count -eq 1) {
-    Deploy Module {
-        By PSGalleryModule {
-            FromSource $ENV:BHProjectName
-            To PSGallery
-            WithOptions @{
-                ApiKey = $ENV:NugetApiKey
-            }
-        }
+[cmdletBinding()]
+Param(
+    [Parameter(Position=0)]
+    [String]
+    $Key
+)
+    
+    $PublishOptions = @{
+        Name = "$PSScriptRoot\PSSysadminToolkit.psd1"
+        NuGetApiKey = $Key
+        LicenseUri = "https://github.com/steviecoaster/PSSysadminToolkit/blob/Dev/LICENSE"
+        Tag = "Sysadmin Administration", "Toolkit"
+
     }
-}
+ 
+    Publish-Module @PublishOptions 
