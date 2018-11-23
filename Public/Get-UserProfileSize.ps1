@@ -42,21 +42,18 @@ function Get-UserProfileSize {
         if (-not $ComputerName) {
             $ComputerName = '.'
         }
+        
         foreach ($Computer in $ComputerName) {
-            $FolderList = if ($IncludeSpecial) {
-                Get-CimInstance -ClassName 'win32_userprofile' -ComputerName $Computer |
-                    Select-Object -ExpandProperty Localpath
-            }
-            else {
+            $FolderList = if (-not $IncludeSpecial) {
                 Get-CimInstance -ClassName 'win32_userprofile' -ComputerName $Computer -Filter "Special = 'False'" |
                     Select-Object -ExpandProperty Localpath
             }
-
-            $List = [System.Collections.Generic.List[pscustomobject]]::new()
+            else {
+                Get-CimInstance -ClassName 'win32_userprofile' -ComputerName $Computer |
+                    Select-Object -ExpandProperty Localpath
+            }
 
             foreach ($Folder in $FolderList) {
-                $Profile = $Folder.Split("\")[-1]
-
                 $FileSizeScript = {
                     param($Folder)
 
@@ -64,26 +61,20 @@ function Get-UserProfileSize {
                         Measure-Object -Property Length -Sum
                 }
 
-                $Size = if ($Computer -ne '.') {
-                    Invoke-Command -ComputerName $Computer -ScriptBlock $FileSizeScript -ArgumentList $Folder
-                }
-                else {
+                $Size = if ($Computer -eq '.') {
                     $FileSizeScript.InvokeReturnAsIs($Folder)
                 }
+                else {
+                    Invoke-Command -ComputerName $Computer -ScriptBlock $FileSizeScript -ArgumentList $Folder
+                }
 
-                $Object = [pscustomobject]@{
-                    Name   = $Profile
+                [pscustomobject]@{
+                    Name   = $Folder | Split-Path -Leaf
                     SizeMB = [Math]::Round(($Size.Sum / 1MB), 2)
                     SizeGB = [Math]::Round(($Size.Sum / 1GB), 2)
                 }
-
-                $List.Add($Object)
             }
-
-            $List
         }
     }
-
     end {}
-
 }
