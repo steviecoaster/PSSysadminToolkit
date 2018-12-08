@@ -1,4 +1,4 @@
-$Tests = Get-ChildItem -Path . -Recurse
+$Tests = Get-ChildItem -Path . -Recurse | Where { $_.Extension -eq '.ps1'}
 
 $Tests | ForEach-Object {
 
