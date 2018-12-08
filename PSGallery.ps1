@@ -22,7 +22,7 @@ Param(
     $PublishOptions = @{
         
         
-        Name = "$PSScriptRoot\PSSysadminToolkit.psd1"
+        Name = ".\PSSysadminToolkit.psd1"
         NuGetApiKey = $Key
 
     }
