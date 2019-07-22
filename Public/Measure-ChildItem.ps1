@@ -104,6 +104,19 @@ function Measure-ChildItem {
 
                     public class FileSearcher
                     {
+                        private static uint convertToUInt(int value)
+                        {
+                            return BitConverter.ToUInt32(
+                                BitConverter.GetBytes(value),
+                                0
+                            );
+                        }
+
+                        private static long convertToLong(int value)
+                        {
+                            return (long)(convertToUInt(value) << 32);
+                        }
+
                         public static long[] MeasureItem(string path, bool recurse, long[] itemData)
                         {
                             if (itemData == null)
@@ -139,7 +152,7 @@ function Measure-ChildItem {
                                 }
                                 else
                                 {
-                                    itemData[0] += ((long)findData.nFileSizeHigh * UInt32.MaxValue) + (long)findData.nFileSizeLow;
+                                    itemData[0] += convertToLong(findData.nFileSizeHigh) + (long)convertToUInt(findData.nFileSizeLow);
                                     itemData[1]++;
                                 }
                             } while (UnsafeNativeMethods.FindNextFile(findHandle, out findData));
